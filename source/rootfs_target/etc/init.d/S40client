@@ -1,0 +1,46 @@
+#!/bin/sh
+
+startclient() {
+    Xorg &
+    while true
+    do
+      count=`ps -ef |grep matchbox-window-manager |grep -v "grep" |wc -l`
+      if [ 0 == $count ];then
+        matchbox-window-manager -use_titlebar no &
+      else
+        break
+      fi
+      sleep 1
+    done
+    xterm &
+}
+start() {
+        printf "start client"
+        export DISPLAY=:0.0 
+        export LANG=zh_CN.UTF-8
+        startclient &
+        echo "start client OK"
+}
+stop() {
+        echo "start client OK"
+}
+restart() {
+        echo "start client OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        restart
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?

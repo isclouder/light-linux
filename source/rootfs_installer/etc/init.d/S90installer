@@ -1,0 +1,72 @@
+#!/bin/sh
+
+install() {
+clear
+echo "install ..."
+parted -s /dev/mmcblk0 mklabel loop
+parted -s /dev/mmcblk0 mklabel msdos
+parted -s /dev/mmcblk0 mkpart primary 1M 500M
+sync
+mkfs.fat /dev/mmcblk0p1
+parted -s /dev/mmcblk0 set 1 boot on
+
+mount /dev/sda1 /media/
+mount /dev/mmcblk0p1 /mnt/
+cp /media/bzImage_target /mnt/bzImage
+cp -R /media/EFI/ /mnt/
+umount /mnt
+umount /media
+sync
+
+while true;do
+   stty -icanon min 0 time 200
+   echo -n "Installation process is completed, reboot now (yes or no)?"
+   read Arg
+   case $Arg in
+       Y|y|YES|yes)
+         echo "yes"
+         reboot
+         break;;
+       N|n|NO|no)
+         echo "no"
+         exit;;
+        "")
+          echo
+          echo "auto reboot"
+          #reboot
+          break;;
+    esac
+done
+
+echo "over..."
+}
+
+start() {
+        printf "start installer"
+        install
+        echo "start installer OK"
+}
+stop() {
+	echo "stop installer OK"
+}
+restart() {
+	echo "restart installer OK"
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart|reload)
+	restart
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+
