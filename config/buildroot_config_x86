@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot 2015.11.1-g3f7843c-dirty Configuration
+# Buildroot 2015.11.1-gcd3de24-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOSTARCH_NEEDS_IA32_COMPILER=y
@@ -1056,9 +1056,6 @@ BR2_PACKAGE_DOSFSTOOLS_MKFS_FAT=y
 #
 # Graphic libraries and applications (graphic/text)
 #
-BR2_PACKAGE_SPICE_GTK=y
-BR2_PACKAGE_VIRT_VIEWER=y
-# BR2_PACKAGE_OPENBOX is not set
 
 #
 # Graphic applications
