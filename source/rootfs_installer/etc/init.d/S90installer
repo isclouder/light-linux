@@ -3,12 +3,16 @@
 install() {
 clear
 echo "install ..."
-parted -s /dev/mmcblk0 mklabel loop
-parted -s /dev/mmcblk0 mklabel msdos
-parted -s /dev/mmcblk0 mkpart primary 1M 500M
+parted /dev/mmcblk0 -s "mklabel loop"
+parted /dev/mmcblk0 -s "mklabel msdos"
+parted /dev/mmcblk0 -s "mkpart primary 1M 500M"
+parted /dev/mmcblk0 -s "mkpart primary 500M 505"
+parted /dev/mmcblk0 -s "mkpart primary 505M -1M"
 sync
-mkfs.fat /dev/mmcblk0p1
-parted -s /dev/mmcblk0 set 1 boot on
+mkfs.ext4 -L boot /dev/mmcblk0p1
+mkfs.ext4 -L config /dev/mmcblk0p2
+mkfs.ext4 -L data /dev/mmcblk0p3
+#parted -s /dev/mmcblk0 set 1 boot on
 
 mount /dev/sda1 /media/
 mount /dev/mmcblk0p1 /mnt/

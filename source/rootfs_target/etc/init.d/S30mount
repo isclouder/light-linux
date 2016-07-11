@@ -1,0 +1,50 @@
+#!/bin/sh
+
+do_mount_partition(){
+        if grep -q " /config " /etc/mtab; then
+             return 0
+        else
+            mkdir /config
+            mount LABEL=config /config
+        fi
+        if grep -q " /data " /etc/mtab; then
+             return 0
+        else
+            mkdir /data
+            mount LABEL=data /data
+        fi
+}
+
+do_mount_file(){
+    echo
+}
+
+start() {
+        printf "start mount"
+        do_mount_partition 
+        do_mount_file 
+        echo "start mount OK"
+}
+stop() {
+        echo "start mount OK"
+}
+restart() {
+        echo "start mount OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        restart
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
