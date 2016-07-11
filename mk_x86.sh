@@ -46,6 +46,13 @@ build_kernel(){
     [ $? -ne 0 ] && exit 1
 }
 
+create_iso(){
+    cd ${PATH_CRT}
+    cp -R ${PATH_BROOT}/output/images/efi-part/EFI/ ${PATH_OUT} 
+    cp -dpR ${PATH_SOURCE}/bootloader/EFI/* ${PATH_OUT}/EFI/ 
+    mkisofs -l -J -L -r -o light-linux.iso ${PATH_OUT} 
+}
+
 rm -rf ${PATH_OUT}; mkdir ${PATH_OUT}
 build_rootfs
 edit_rootfs 0
@@ -58,4 +65,5 @@ build_kernel
 mv ${PATH_BROOT}/output/images/rootfs.cpio output/images/rootfs.target.cpio
 mv ${PATH_BROOT}/output/images/rootfs.bak.cpio output/images/rootfs.cpio
 mv ${PATH_BROOT}/output/build/linux-4.3/arch/x86/boot/bzImage ${PATH_OUT}/bzImage_target
+create_iso
 cd ${PATH_CRT}
