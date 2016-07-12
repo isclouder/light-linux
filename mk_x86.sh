@@ -50,7 +50,7 @@ create_iso(){
     cd ${PATH_CRT}
     cp -R ${PATH_BROOT}/output/images/efi-part/EFI/ ${PATH_OUT} 
     cp -dpR ${PATH_SOURCE}/bootloader/EFI/* ${PATH_OUT}/EFI/ 
-    mkisofs -l -J -L -r -o light-linux.iso ${PATH_OUT} 
+    mkisofs -V "light-linux" -l -J -L -r -o light-linux.iso ${PATH_OUT} 
 }
 
 rm -rf ${PATH_OUT}; mkdir ${PATH_OUT}
