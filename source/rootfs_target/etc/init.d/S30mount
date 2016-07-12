@@ -15,14 +15,45 @@ do_mount_partition(){
         fi
 }
 
-do_mount_file(){
-    echo
+do_persist_one_file(){
+    file=$1
+    dir=$(dirname $file)
+    echo $file >> /config/files
+    mkdir -p /config/$dir
+    cp $file /config/$dir -rf
+}
+
+do_first_persist(){
+    if [ -d /config ]; then
+        if [ ! -e /config/files ]; then
+            do_persist_one_file "/etc/network/interfaces"
+        fi
+    fi
+}
+
+do_mount_persist(){
+    if [ -e /config/files ] ; then
+        for f in $(cat /config/files); do
+            if grep -q " $f ext[234]" /proc/mounts ; then
+                true
+            else
+                if [ -d "/config/$f" ]; then
+                    mkdir -p "$f"
+                else
+                    mkdir -p "$(dirname "$f")"
+                    touch "$f"
+                fi
+                mount -n --bind "/config/$f" "$f"
+            fi
+        done
+    fi
 }
 
 start() {
         printf "start mount"
         do_mount_partition 
-        do_mount_file 
+        do_first_persist
+        do_mount_persist 
         echo "start mount OK"
 }
 stop() {
