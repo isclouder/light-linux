@@ -53,6 +53,10 @@ create_iso(){
     mkisofs -V "light-linux" -l -J -L -r -o light-linux.iso ${PATH_OUT} 
 }
 
+copy_app(){
+    cp -R ${PATH_SOURCE}/app ${PATH_OUT}
+}
+
 rm -rf ${PATH_OUT}; mkdir ${PATH_OUT}
 build_rootfs
 edit_rootfs 0
@@ -65,5 +69,6 @@ build_kernel
 mv ${PATH_BROOT}/output/images/rootfs.cpio output/images/rootfs.target.cpio
 mv ${PATH_BROOT}/output/images/rootfs.bak.cpio output/images/rootfs.cpio
 mv ${PATH_BROOT}/output/build/linux-4.3/arch/x86/boot/bzImage ${PATH_OUT}/bzImage_target
+copy_app
 create_iso
 cd ${PATH_CRT}

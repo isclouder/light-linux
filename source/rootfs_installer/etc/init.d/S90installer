@@ -20,8 +20,9 @@ format() {
     parted $drive -s "mklabel loop"
     parted $drive -s "mklabel msdos"
     parted $drive -s "mkpart primary 1M 500M"
-    parted $drive -s "mkpart primary 500M 505"
-    parted $drive -s "mkpart primary 505M -1M"
+    parted $drive -s "mkpart primary 500M 510"
+    parted $drive -s "mkpart primary 510M 1024M"
+    parted $drive -s "mkpart primary 1024M -1M"
     sync
 
     major=$(stat -c '%t' "$(readlink -f "$drive")")
@@ -32,16 +33,21 @@ format() {
     fatlabel ${drive}${flag}1 boot
     ln -snf ${drive}${flag}1 /dev/disk/by-label/boot
     mkfs.ext4 -L config ${drive}${flag}2 1>/dev/null
-    mkfs.ext4 -L data ${drive}${flag}3 1>/dev/null
+    mkfs.ext4 -L app ${drive}${flag}3 1>/dev/null
+    mkfs.ext4 -L data ${drive}${flag}4 1>/dev/null
     parted -s $drive set 1 boot on
 }
 
 install_copy() {
     mount LABEL=light-linux /media
     mount LABEL=boot /mnt/
+    mkdir -p /app
+    mount LABEL=app /app/
     cp /media/bzImage_target /mnt/bzImage
     cp -R /media/EFI/ /mnt/
+    cp -rf /media/app/* /app/
     umount /mnt
+    umount /app
     umount /media
     sync
 }

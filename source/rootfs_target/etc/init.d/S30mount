@@ -7,6 +7,12 @@ do_mount_partition(){
             mkdir /config
             mount LABEL=config /config
         fi
+        if grep -q " /app " /etc/mtab; then
+             return 0
+        else
+            mkdir /app
+            mount LABEL=app /app
+        fi
         if grep -q " /data " /etc/mtab; then
              return 0
         else

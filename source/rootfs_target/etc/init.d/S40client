@@ -12,7 +12,11 @@ startclient() {
       fi
       sleep 1
     done
-    xterm &
+    if [ -e /app/start.sh ]; then
+        /app/start.sh &
+    else
+        xterm &
+    fi
 }
 start() {
         printf "start client"
