@@ -68,7 +68,7 @@ ask_yes_or_no() {
              "")
                echo
                echo "auto reboot"
-               #reboot
+               reboot
                break;;
         esac
     done

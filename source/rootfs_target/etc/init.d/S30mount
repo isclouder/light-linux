@@ -21,10 +21,9 @@ do_mount_partition(){
         fi
 }
 
-do_persist_one_file(){
+do_copy_to_config(){
     file=$1
     dir=$(dirname $file)
-    echo $file >> /config/files
     mkdir -p /config/$dir
     cp $file /config/$dir -rf
 }
@@ -32,7 +31,10 @@ do_persist_one_file(){
 do_first_persist(){
     if [ -d /config ]; then
         if [ ! -e /config/files ]; then
-            do_persist_one_file "/etc/network/interfaces"
+            cp /etc/files /config
+            for f in $(cat /config/files); do
+                do_copy_to_config $f
+            done
         fi
     fi
 }
