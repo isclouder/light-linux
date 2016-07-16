@@ -13,7 +13,7 @@ startclient() {
       sleep 1
     done
     if [ -e /app/start.sh ]; then
-        /app/start.sh &
+        source /app/start.sh &
     else
         xterm &
     fi
