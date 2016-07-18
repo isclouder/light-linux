@@ -217,6 +217,7 @@ endmenu
 
 menu "Graphic libraries and applications (graphic/text)"
 
+	source "package/openbox/Config.in"
 comment "Graphic applications"
 	source "package/fswebcam/Config.in"
 	source "package/glmark2/Config.in"

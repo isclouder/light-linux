@@ -2,16 +2,7 @@
 
 startclient() {
     Xorg &
-    while true
-    do
-      count=`ps -ef |grep matchbox-window-manager |grep -v "grep" |wc -l`
-      if [ 0 == $count ];then
-        matchbox-window-manager -use_titlebar no &
-      else
-        break
-      fi
-      sleep 1
-    done
+    openbox &
     if [ -e /app/start.sh ]; then
         source /app/start.sh &
     else

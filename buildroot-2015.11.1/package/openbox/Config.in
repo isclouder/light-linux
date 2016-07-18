@@ -1,0 +1,5 @@
+config BR2_PACKAGE_OPENBOX
+	bool "openbox"
+	help
+	  This package implements the openbox.
+
