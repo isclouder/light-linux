@@ -18,6 +18,7 @@ edit_installer_rootfs(){
 
 edit_target_rootfs(){
     sed -i "/pulse-access/ s/$/,root/" ${PATH_BROOT}/output/images/rootfs/etc/group
+    sed -i  "/#PermitRootLogin/ c\PermitRootLogin yes" ${PATH_BROOT}/output/images/rootfs/etc/ssh/sshd_config
     cp -dpR ${PATH_SOURCE}/rootfs_target/* ${PATH_BROOT}/output/images/rootfs/
 }
 
