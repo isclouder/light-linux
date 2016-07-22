@@ -14,6 +14,29 @@ wipe_mbr() {
     sync
 }
 
+mount_iso() {
+    for i in $(cat /proc/cmdline); do
+        case $i in
+            manager=*)
+            pxe_manager=${i#manager=}
+                ;;
+            iso=*)
+            pxe_iso=${i#iso=}
+                ;;
+        esac
+    done
+
+    if [ -z $pxe_manager ]; then
+        mount LABEL=light-linux /media
+    else
+        cd /data/
+        mkdir -p /app/config/
+        echo $pxe_manager > /app/config/manager
+        tftp -g -r $pxe_iso $pxe_manager
+        mount $pxe_iso /media
+    fi
+}
+
 format() {
     local drive="$1"
     wipe_mbr $drive
@@ -39,16 +62,23 @@ format() {
 }
 
 install_copy() {
-    mount LABEL=light-linux /media
-    mount LABEL=boot /mnt/
+    mkdir -p /config
+    mkdir -p /data
     mkdir -p /app
+    mount LABEL=boot /mnt/
+    mount LABEL=config /config/
+    mount LABEL=data /data/
     mount LABEL=app /app/
+    mount_iso
+
     cp /media/bzImage_target /mnt/bzImage
     cp -R /media/EFI/ /mnt/
     cp -rf /media/app/* /app/
     umount /mnt
-    umount /app
     umount /media
+    umount /app
+    umount /config
+    umount /data
     sync
 }
 

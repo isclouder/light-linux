@@ -13,10 +13,18 @@ build_rootfs(){
 }
 
 edit_installer_rootfs(){
+    cat >> ${PATH_BROOT}/output/images/rootfs/etc/network/interfaces << EOF
+auto enp1s0
+iface enp1s0 inet dhcp
+EOF
     cp -dpR ${PATH_SOURCE}/rootfs_installer/* ${PATH_BROOT}/output/images/rootfs/
 }
 
 edit_target_rootfs(){
+    cat >> ${PATH_BROOT}/output/images/rootfs/etc/network/interfaces << EOF
+auto enp1s0
+iface enp1s0 inet dhcp
+EOF
     sed -i "/pulse-access/ s/$/,root/" ${PATH_BROOT}/output/images/rootfs/etc/group
     sed -i  "/#PermitRootLogin/ c\PermitRootLogin yes" ${PATH_BROOT}/output/images/rootfs/etc/ssh/sshd_config
     cp -dpR ${PATH_SOURCE}/rootfs_target/* ${PATH_BROOT}/output/images/rootfs/
