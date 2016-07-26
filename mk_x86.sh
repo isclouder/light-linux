@@ -4,6 +4,8 @@ PATH_CRT=`pwd`
 PATH_SOURCE="${PATH_CRT}/source"
 PATH_BROOT="${PATH_CRT}/buildroot-2015.11.1"
 PATH_OUT="${PATH_CRT}/out"
+VERSION=`cat ${PATH_CRT}/VERSION`
+DATE=`date -d today +"%Y%m%d%H%M"`
 
 build_rootfs(){
     cd ${PATH_BROOT}
@@ -17,6 +19,7 @@ edit_installer_rootfs(){
 auto enp1s0
 iface enp1s0 inet dhcp
 EOF
+    echo ${VERSION}-${DATE} > ${PATH_BROOT}/output/images/rootfs/etc/os-release
     cp -dpR ${PATH_SOURCE}/rootfs_installer/* ${PATH_BROOT}/output/images/rootfs/
 }
 
@@ -27,6 +30,7 @@ iface enp1s0 inet dhcp
 EOF
     sed -i "/pulse-access/ s/$/,root/" ${PATH_BROOT}/output/images/rootfs/etc/group
     sed -i  "/#PermitRootLogin/ c\PermitRootLogin yes" ${PATH_BROOT}/output/images/rootfs/etc/ssh/sshd_config
+    echo ${VERSION}-${DATE} > ${PATH_BROOT}/output/images/rootfs/etc/os-release
     cp -dpR ${PATH_SOURCE}/rootfs_target/* ${PATH_BROOT}/output/images/rootfs/
 }
 
@@ -59,13 +63,14 @@ create_iso(){
     cd ${PATH_CRT}
     cp -R ${PATH_BROOT}/output/images/efi-part/EFI/ ${PATH_OUT} 
     cp -dpR ${PATH_SOURCE}/bootloader/EFI/* ${PATH_OUT}/EFI/ 
-    mkisofs -V "light-linux" -l -J -L -r -o light-linux.iso ${PATH_OUT} 
+    mkisofs -V "light-linux" -l -J -L -r -o mcos-client-${VERSION}-${DATE}.iso ${PATH_OUT} 
 }
 
 copy_app(){
     cp -R ${PATH_SOURCE}/app ${PATH_OUT}
 }
 
+rm -rf *.iso
 rm -rf ${PATH_OUT}; mkdir ${PATH_OUT}
 build_rootfs
 edit_rootfs 0

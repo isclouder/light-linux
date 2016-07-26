@@ -70,14 +70,18 @@ install_copy() {
     mount LABEL=data /data/
     mount LABEL=app /app/
     mount_iso
+    cd /
 
     cp /media/bzImage_target /mnt/bzImage
     cp -R /media/EFI/ /mnt/
-    cp -rf /media/app/* /app/
+    if [ -d /media/app ]; then
+        cp -rf /media/app/* /app/
+    fi
     umount /mnt
     umount /media
     umount /app
     umount /config
+    rm -rf /data/*
     umount /data
     sync
 }
