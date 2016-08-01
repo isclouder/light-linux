@@ -1,17 +1,78 @@
 #!/bin/sh
 
+INSTALLER_LOGFILE=/data/installer.log
+INSTALLER_TMP_LOGFILE=/tmp/installer.log
+
+start_log() {
+    exec 6>&1
+    exec 7>&2
+    exec 8>>$INSTALLER_TMP_LOGFILE
+    exec 1>&8
+    exec 2>&8
+    echo 1 > /proc/sys/kernel/printk
+}
+
+stop_log() {
+    if grep -q " /data " /etc/mtab; then
+        true
+    else
+        mount LABEL=data /data/
+    fi
+    mv $INSTALLER_TMP_LOGFILE $INSTALLER_LOGFILE
+    umount /data/
+    exec 1>&6 6>&-
+    exec 2>&7 7>&-
+    exec 8>&-
+}
+
+set_progress() {
+    ROWS=`tput lines`
+    ROW=`expr $ROWS / 2`
+    FORMET="\033[41m\033[1m\033[${ROW};"
+    COL1=`expr $1 + 1`
+    COL2=`expr $2 + 1`
+
+    if [ $1 = -1 ];then
+        printf "${FORMET}102H] err!" >/dev/console
+    else 
+        if [ $1 = 0 ];then
+            printf "${FORMET}1H[" >/dev/console
+        fi
+
+        for ((i=$COL1;i<$COL2;i++));
+        do
+            p=`expr $i + 1`
+            sleep 0.05
+            printf "${FORMET}${p}H " >/dev/console
+            printf "${FORMET}102H] %d%%" $i >/dev/console
+        done
+    fi
+    printf "\r\033[0m" >/dev/console
+    printf "\n" >/dev/console
+}
+
 wipe_mbr() {
     local drive="$1"
-    dd if=/dev/zero of="$drive" bs=1024K count=1 2>/dev/null
-    local disk_kb_count=$(sfdisk -s "$drive" 2>/dev/null)
-    dd if=/dev/zero of="$drive" bs=1024 seek=$(($disk_kb_count - 1)) count=1 2>/dev/null
+    dd if=/dev/zero of="$drive" bs=1024K count=1
+    local disk_kb_count=$(sfdisk -s "$drive")
+    dd if=/dev/zero of="$drive" bs=1024 seek=$(($disk_kb_count - 1)) count=1
 
     #wipe out GPT
-    dd if=/dev/zero of=$drive bs=4096 count=35 2>/dev/null
+    dd if=/dev/zero of=$drive bs=4096 count=35
     disk_kb_cnt=$(blockdev --getsz $drive)
-    dd if=/dev/zero of=$drive bs=4096 seek=$(($disk_kb_cnt * 512/4096 - 35)) count=35 2>/dev/null
+    dd if=/dev/zero of=$drive bs=4096 seek=$(($disk_kb_cnt * 512/4096 - 35)) count=35
 
     sync
+}
+if_pxe() {
+    for i in $(cat /proc/cmdline); do
+        case $i in
+            manager=*)
+            return 0
+                ;;
+        esac
+    done
+    return 1
 }
 
 mount_iso() {
@@ -43,22 +104,27 @@ format() {
     parted $drive -s "mklabel loop"
     parted $drive -s "mklabel msdos"
     parted $drive -s "mkpart primary 1M 500M"
+    [ $? -ne 0 ] && return 1
     parted $drive -s "mkpart primary 500M 510"
+    [ $? -ne 0 ] && return 1
     parted $drive -s "mkpart primary 510M 1024M"
+    [ $? -ne 0 ] && return 1
     parted $drive -s "mkpart primary 1024M -1M"
+    [ $? -ne 0 ] && return 1
     sync
 
     major=$(stat -c '%t' "$(readlink -f "$drive")")
     if [ $major = b3 ]; then
         flag=p
     fi
-    mkfs.fat ${drive}${flag}1 1>/dev/null
+    mkfs.fat ${drive}${flag}1
     fatlabel ${drive}${flag}1 boot
     ln -snf ${drive}${flag}1 /dev/disk/by-label/boot
-    mkfs.ext4 -L config ${drive}${flag}2 1>/dev/null
-    mkfs.ext4 -L app ${drive}${flag}3 1>/dev/null
-    mkfs.ext4 -L data ${drive}${flag}4 1>/dev/null
+    mkfs.ext4 -L config ${drive}${flag}2
+    mkfs.ext4 -L app ${drive}${flag}3
+    mkfs.ext4 -L data ${drive}${flag}4
     parted -s $drive set 1 boot on
+    return 0 
 }
 
 install_copy() {
@@ -66,14 +132,20 @@ install_copy() {
     mkdir -p /data
     mkdir -p /app
     mount LABEL=boot /mnt/
+    [ $? -ne 0 ] && return 1
     mount LABEL=config /config/
+    [ $? -ne 0 ] && return 1
     mount LABEL=data /data/
+    [ $? -ne 0 ] && return 1
     mount LABEL=app /app/
+    [ $? -ne 0 ] && return 1
     mount_iso
     cd /
 
     cp /media/bzImage_target /mnt/bzImage
+    [ $? -ne 0 ] && return 1
     cp -R /media/EFI/ /mnt/
+    [ $? -ne 0 ] && return 1
     if [ -d /media/app ]; then
         cp -rf /media/app/* /app/
     fi
@@ -84,12 +156,14 @@ install_copy() {
     rm -rf /data/*
     umount /data
     sync
+    return 0
 }
 
 ask_yes_or_no() {
     while true;do
-        stty -icanon min 0 time 200
-        echo -n "Installation process is completed, reboot now (yes or no)?"
+        #stty -icanon min 0 time 200
+        printf "\n"
+        echo -n "Reboot now (yes or no)?[yes]"
         read Arg
         case $Arg in
             Y|y|YES|yes)
@@ -111,11 +185,37 @@ ask_yes_or_no() {
 }
 
 install() {
+    ret=0
     clear
-    echo "install ..."
+    start_log
+    set_progress 0 10
     format /dev/mmcblk0 
-    install_copy
-    ask_yes_or_no
+    if [ $? = 0 ];then
+        set_progress 10 30 
+        install_copy
+        if [ $? = 0 ];then
+            set_progress 30 100 
+        else
+            ret=1
+        fi
+    else
+        ret=1 
+    fi
+
+    if [ $ret = 1 ]; then
+        set_progress -1
+    fi
+    stop_log
+    if_pxe
+    if [ $? = 0 ]; then
+        if [ $ret = 0 ]; then
+            shutdown -h now
+        else 
+            ask_yes_or_no
+        fi 
+    else
+        ask_yes_or_no
+    fi
 }
 
 start() {
