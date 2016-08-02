@@ -105,11 +105,11 @@ format() {
     parted $drive -s "mklabel msdos"
     parted $drive -s "mkpart primary 1M 500M"
     [ $? -ne 0 ] && return 1
-    parted $drive -s "mkpart primary 500M 510"
+    parted $drive -s "mkpart primary 500M 600"
     [ $? -ne 0 ] && return 1
-    parted $drive -s "mkpart primary 510M 1024M"
+    parted $drive -s "mkpart primary 600M 1536M"
     [ $? -ne 0 ] && return 1
-    parted $drive -s "mkpart primary 1024M -1M"
+    parted $drive -s "mkpart primary 1536M -1M"
     [ $? -ne 0 ] && return 1
     sync
 
