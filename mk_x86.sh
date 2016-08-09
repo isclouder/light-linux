@@ -63,6 +63,7 @@ create_iso(){
     cd ${PATH_CRT}
     cp -R ${PATH_BROOT}/output/images/efi-part/EFI/ ${PATH_OUT} 
     cp -dpR ${PATH_SOURCE}/bootloader/EFI/* ${PATH_OUT}/EFI/ 
+    cp ${PATH_SOURCE}/splash.jpg ${PATH_OUT}/
     mkisofs -V "light-linux" -l -J -L -r -o mcos-client-${VERSION}-${DATE}.iso ${PATH_OUT} 
 }
 

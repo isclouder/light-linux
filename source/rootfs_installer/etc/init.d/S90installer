@@ -146,6 +146,9 @@ install_copy() {
     [ $? -ne 0 ] && return 1
     cp -R /media/EFI/ /mnt/
     [ $? -ne 0 ] && return 1
+    if [ -f /media/splash.jpg ]; then
+        cp /media/splash.jpg /mnt/
+    fi
     if [ -d /media/app ]; then
         cp -rf /media/app/* /app/
     fi
