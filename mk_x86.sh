@@ -9,6 +9,7 @@ DATE=`date -d today +"%Y%m%d%H%M"`
 
 build_rootfs(){
     cd ${PATH_BROOT}
+    make clean
     cp ${PATH_CRT}/config/buildroot_config_x86 .config
     make
     [ $? -ne 0 ] && exit 1
